@@ -8,7 +8,8 @@ This assignment makes use of data from a personal activity monitoring device. Th
 3. The date column is converted to Date type.
 4. The data is examined by using summary and str methods on it.
 
-```{r}
+
+```r
 library(ggplot2)
 tbl <- read.csv("activity.csv", header=T, colClasses=c("numeric", "character", "numeric"))
 tbl$interval <- factor(tbl$interval)
@@ -16,16 +17,39 @@ tbl$date <- as.Date(tbl$date, format="%Y-%m-%d")
 ```
 
 Checking Data.
-```{r}
+
+```r
 summary(tbl)
+```
+
+```
+##      steps            date               interval    
+##  Min.   :  0.0   Min.   :2012-10-01   0      :   61  
+##  1st Qu.:  0.0   1st Qu.:2012-10-16   5      :   61  
+##  Median :  0.0   Median :2012-10-31   10     :   61  
+##  Mean   : 37.4   Mean   :2012-10-31   15     :   61  
+##  3rd Qu.: 12.0   3rd Qu.:2012-11-15   20     :   61  
+##  Max.   :806.0   Max.   :2012-11-30   25     :   61  
+##  NA's   :2304                         (Other):17202
+```
+
+```r
 str(tbl)
+```
+
+```
+## 'data.frame':	17568 obs. of  3 variables:
+##  $ steps   : num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ date    : Date, format: "2012-10-01" "2012-10-01" ...
+##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
 ```
 
 ## What is mean total number of steps taken per day?
 
 Code to plot data and draw its histogram, plus two lines for mean and median.
 
-```{r}
+
+```r
 steps_per_day <- aggregate(steps ~ date, tbl, sum)
 colnames(steps_per_day) <- c("date", "steps")
 
@@ -47,16 +71,19 @@ ggplot(data=steps_per_day, aes(x=steps)) +
   ggtitle("Daily total number of steps taken")
 ```
 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
+
 **For the total number of steps taken per day:**  
-- **`r paste("Mean:", mean_steps)`**
-- **`r paste("Median:", median_steps)`**
+- **Mean: 10766.19**
+- **Median: 10765**
 
 
 ## What is the average daily activity pattern?
 
 Plot of average daily pattern with a line shows the maximum.
 
-```{r}
+
+```r
 steps_pi <- aggregate(tbl$steps, by=list(interval=tbl$interval),
                         FUN=mean, na.rm=T)
 steps_pi$interval <- as.integer(levels(steps_pi$interval)[steps_pi$interval])
@@ -73,13 +100,16 @@ ggplot(steps_pi, aes(x=interval, y=steps)) +
   labs(title="Average Daily Activity Pattern", x="Interval", y="Number of steps")
 ```
 
-**5 minutes interval which contains the maximun number of steps: `r max_step_interval`**
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4.png) 
+
+**5 minutes interval which contains the maximun number of steps:835**
 
 ## Imputing missing values
 
 Replacing missing values with the mean value at the same interval across days.
 
-```{r}
+
+```r
 na_indices <- which(is.na(tbl$steps))
 defaults <- steps_pi
 na_replacements <- unlist(lapply(na_indices, FUN=function(idx){
@@ -96,14 +126,26 @@ full_tbl <- data.frame(
 ```
 
 Imputed values summary:
-```{r}
+
+```r
 summary(full_tbl)
+```
+
+```
+##      steps            date               interval    
+##  Min.   :  0.0   Min.   :2012-10-01   0      :   61  
+##  1st Qu.:  0.0   1st Qu.:2012-10-16   5      :   61  
+##  Median :  0.0   Median :2012-10-31   10     :   61  
+##  Mean   : 37.4   Mean   :2012-10-31   15     :   61  
+##  3rd Qu.: 27.0   3rd Qu.:2012-11-15   20     :   61  
+##  Max.   :806.0   Max.   :2012-11-30   25     :   61  
+##                                       (Other):17202
 ```
 
 Histogram of the total number of steps taken each day
 
-```{r}
 
+```r
 complete_steps_per_day <- aggregate(steps ~ date, full_tbl, sum)
 colnames(complete_steps_per_day) <- c("date", "steps")
 
@@ -125,15 +167,18 @@ ggplot(data=complete_steps_per_day, aes(x=steps)) +
   ggtitle("Daily total number of steps taken")
 ```
 
+![plot of chunk unnamed-chunk-7](figure/unnamed-chunk-7.png) 
+
 **For the total number of steps taken per day after filling missing data:**  
-- **`r paste("Mean:", complete_mean_steps)`**
-- **`r paste("Median:", complete_median_steps)`**
+- **Mean: 10766.19**
+- **Median: 10766.19**
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 Code to plot the Weekdays and Weekend days
 
-```{r}
+
+```r
 tbl$weekday <- as.factor(weekdays(tbl$date))
 weekend_data <- subset(tbl, weekday %in% c("Saturday","Sunday"))
 weekday_data <- subset(tbl, !weekday %in% c("Saturday","Sunday"))
@@ -161,3 +206,5 @@ ggplot(day_of_week_data,
   facet_wrap(~ dayofweek, nrow=2, ncol=1) +
   labs(x="Interval", y="Number of steps")
 ```
+
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
